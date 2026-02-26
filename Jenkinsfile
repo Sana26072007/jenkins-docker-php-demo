@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'Sana26072007/php-demo-app'
+        DOCKER_IMAGE = 'sana26072007/php-demo-app'
         DOCKER_CREDENTIALS_ID = 'docker-hub-credentials'
     }
 
