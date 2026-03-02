@@ -1,0 +1,49 @@
+yaml
+---
+- name: Настройка веб-сервера
+  hosts: webservers # Группа серверов в inventory файле
+  become: yes # Выполнять от root
+  vars:
+    nginx_port: 8080
+    domain_name: myapp.local
+
+  tasks:
+    # Убедиться, что пакеты обновлены
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    # Установка Nginx
+    - name: Install Nginx
+      apt:
+        name: nginx
+        state: present
+
+    # Копирование нашего конфига вместо стандартного
+    - name: Copy custom Nginx config
+      template:
+        src: ./templates/nginx.conf.j2 # Шаблон конфига у нас на ПК
+        dest: /etc/nginx/sites-available/myapp
+      notify: restart nginx # Если файл изменился, перезапустить nginx
+
+    # Включение сайта (создание симлинка)
+    - name: Enable site configuration
+      file:
+        src: /etc/nginx/sites-available/myapp
+        dest: /etc/nginx/sites-enabled/myapp
+        state: link
+      notify: restart nginx
+
+    # Убедиться, что Nginx запущен
+    - name: Ensure Nginx is running
+      service:
+        name: nginx
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
